@@ -105,6 +105,27 @@ bool menu_perform_action()
 			}
 			break;
 
+		case MENU_DELETESTUDENT:
+			if (student_count() <= 0)
+			{
+				print_line("Nera jokiu ivestu mokiniu duomenys.");
+				menu_set_action(MENU_MAIN);
+				break;
+			}
+
+			print_title("Iveskite mokinio varda");
+			if (menu_get_string())
+			{
+				int studentIndex = student_get_index(g_inputString);
+				if (studentIndex != -1)
+					student_delete(studentIndex);
+				else
+					print_line("Mokinio su vardu " + g_inputString + " nera.");
+
+				menu_set_action(MENU_ACTIONEND);
+			}
+			break;
+
 		case MENU_QUIT:
 			g_quit = true;
 			break;
