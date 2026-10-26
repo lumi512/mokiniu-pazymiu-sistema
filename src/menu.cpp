@@ -1,4 +1,7 @@
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+
 #include "menu.h"
 #include "students.h"
 #include "printutils.h"
@@ -13,7 +16,7 @@ void menu_set_action(MenuAction act)
 	g_currentAction = act;
 }
 
-bool menu_perform_action()
+bool menu_perform_action(int studentIndex)
 {
 	int result;
 	switch (g_currentAction)
@@ -90,13 +93,16 @@ bool menu_perform_action()
 						gradeCount++;
 
 
-						int gradeResult = menu_list("Ivesti dar viena pazymi?", {
-							"Taip",
-							"Ne"
-						});
+						if (gradeCount < 10)
+						{
+							int gradeResult = menu_list("Ivesti dar viena pazymi?", {
+								"Taip",
+								"Ne"
+							});
 
-						if (gradeResult == 2)
-							break;
+							if (gradeResult == 2)
+								break;
+						}
 					}
 					while (gradeCount < 10);
 				}
@@ -105,7 +111,7 @@ bool menu_perform_action()
 			}
 			break;
 
-		case MENU_DELETESTUDENT:
+		case MENU_VIEWALL:
 			if (student_count() <= 0)
 			{
 				print_line("Nera jokiu ivestu mokiniu duomenys.");
@@ -113,17 +119,119 @@ bool menu_perform_action()
 				break;
 			}
 
-			print_title("Iveskite mokinio varda");
-			if (menu_get_string())
+			print_title("Visu mokiniu pazymiai");
+			for (int i = 0; i < MAX_STUDENTS; i++)
 			{
-				int studentIndex = student_get_index(g_inputString);
-				if (studentIndex != -1)
-					student_delete(studentIndex);
-				else
-					print_line("Mokinio su vardu " + g_inputString + " nera.");
+				if (g_studentList[i] != "")
+				{
+					print_line("Mokinio " + g_studentList[i] + " pazymiai:");
 
-				menu_set_action(MENU_ACTIONEND);
+					int count = 0;
+					int *grades = g_gradesList[i];
+					for (int j = 0; j < MAX_GRADES; j++)
+					{
+						if (grades[j] != 0)
+						{
+							print_line(to_string(j + 1) + ": " + to_string(grades[j]));
+							count++;
+						}
+					}
+
+					print_line("Is viso pazymiu: " + to_string(count));
+				}
 			}
+
+			menu_set_action(MENU_ACTIONEND);
+			break;
+
+		case MENU_VIEWSTUDENT:
+			print_title("Mokinio " + student_get_name(studentIndex) + " pazymiai");
+			if (studentIndex != -1)
+			{
+				int count = 0;
+				int *grades = g_gradesList[studentIndex];
+				for (int i = 0; i < MAX_GRADES; i++)
+				{
+					if (grades[i] != 0)
+					{
+						print_line(to_string(i + 1) + ": " + to_string(grades[i]));
+						count++;
+					}
+				}
+
+				print_line("Is viso pazymiu: " + to_string(count));
+			}
+
+			menu_set_action(MENU_ACTIONEND);
+			break;
+
+		case MENU_UPDATE:
+			if (studentIndex != -1)
+			{
+				print_title("Iveskite mokiniui " + student_get_name(studentIndex) + " pazymio numeri");
+
+				do
+				{
+					menu_get_input(GRADE_MIN, MAX_GRADES);
+					if (g_inputResult == -1)
+						print_line("Iveskite skaiciu nuo " + to_string(GRADE_MIN) + " iki " + to_string(MAX_GRADES) + ".");
+				}
+				while (g_inputResult == -1);
+
+
+				int gindex = g_inputResult - 1;
+				print_title("Iveskite nauja pazymi " + to_string(gindex + 1) + " mokiniui " + student_get_name(studentIndex));
+
+				do
+				{
+					menu_get_input(GRADE_MIN, GRADE_MAX);
+					if (g_inputResult == -1)
+						print_line("Iveskite skaiciu nuo " + to_string(GRADE_MIN) + " iki " + to_string(GRADE_MAX) + ".");
+				}
+				while (g_inputResult == -1);
+
+				student_set_grade(studentIndex, gindex, g_inputResult);
+			}
+
+			menu_set_action(MENU_ACTIONEND);
+			break;
+
+		case MENU_CALCAVG:
+			print_title("Mokinio vidurkio suskaiciavimas");
+			if (studentIndex != -1)
+			{
+				double sum = 0;
+				int count = 0;
+
+				int *grades = g_gradesList[studentIndex];
+				for (int i = 0; i < MAX_GRADES; i++)
+				{
+					if (grades[i] != 0)
+					{
+						sum += grades[i];
+						count++;
+					}
+				}
+
+				stringstream avgstr;
+				avgstr << fixed << setprecision(2) << sum / count;
+
+				double avg = atof(avgstr.str().c_str());
+				print_line("Mokinio " + student_get_name(studentIndex) + " vidurkis: " + to_string(avg));
+			}
+
+			menu_set_action(MENU_ACTIONEND);
+			break;
+
+		case MENU_DELETESTUDENT:
+			print_title("Mokinio duomenu pasalinimas");
+			if (studentIndex != -1)
+			{
+				print_line("Mokinys " + student_get_name(studentIndex) + " pasalintas.");
+				student_delete(studentIndex);
+			}
+
+			menu_set_action(MENU_ACTIONEND);
 			break;
 
 		case MENU_QUIT:

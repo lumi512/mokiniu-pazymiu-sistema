@@ -27,7 +27,7 @@ extern MenuAction g_currentAction;
 extern MenuAction g_lastAction;
 
 void menu_set_action(MenuAction act);
-bool menu_perform_action();
+bool menu_perform_action(int studentIndex = -1);
 
 void menu_print_list(vector<string> list);
 int menu_list(string title, vector<string> list);

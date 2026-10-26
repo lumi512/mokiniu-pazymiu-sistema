@@ -82,6 +82,13 @@ int student_get_index(string name)
 	return idx;
 }
 
+string student_get_name(int idx)
+{
+	if (student_is_valid(idx))
+		return g_studentList[idx];
+	return "";
+}
+
 bool student_is_valid(int idx) { return idx >= 0 && idx < MAX_STUDENTS && g_studentList[idx] != ""; }
 
 void student_rearrange()
@@ -89,14 +96,17 @@ void student_rearrange()
 	while (!student_empty_space_check())
 	{
 		string prevstr = "";
+		int previdx = -1;
 		int *prevgrades = nullptr;
 
 		for (int i = MAX_STUDENTS - 1; i >= 0; i--)
 		{
 			string str = g_studentList[i];
-			if (prevstr != "" && str == "")
+			if (prevstr != "" && str == "" && previdx != -1)
 			{
-				g_studentList[i] = str;
+				g_studentList[i] = prevstr;
+				g_studentList[previdx] = "";
+
 				if (prevgrades != nullptr)
 				{
 					for (int j = 0; j < MAX_GRADES; j++)
@@ -105,6 +115,7 @@ void student_rearrange()
 			}
 
 			prevstr = str;
+			previdx = i;
 			prevgrades = g_gradesList[i];
 		}
 	}
@@ -145,7 +156,7 @@ void student_delete(string name)
 
 void student_set_grade(int idx, int grade, int num)
 {
-	if (student_is_valid(idx) && grade > 0 && grade < MAX_GRADES)
+	if (student_is_valid(idx) && grade >= 0 && grade < MAX_GRADES)
 		g_gradesList[idx][grade] = num;
 }
 

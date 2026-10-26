@@ -20,6 +20,7 @@ int student_get_free_space();
 bool student_has_free_space();
 
 int student_get_index(string name);
+string student_get_name(int idx);
 bool student_is_valid(int idx);
 
 void student_rearrange();
